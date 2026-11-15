@@ -17,9 +17,9 @@ X_test = pd.read_csv("Xtest.csv")
 y_train = pd.read_csv("ytrain.csv").squeeze()
 y_test = pd.read_csv("ytest.csv").squeeze()
 
-# 2. Build preprocessing + model pipeline
-num_cols = X_train.select_dtypes(include=["int64", "float64"]).columns.tolist()
-cat_cols = X_train.select_dtypes(include=["object", "category", "str"]).columns.tolist()
+# 2. Build preprocessing + model pipeline (compatible with pandas 2.x and 3.x)
+num_cols = X_train.select_dtypes(include=["number"]).columns.tolist()
+cat_cols = X_train.select_dtypes(exclude=["number"]).columns.tolist()
 
 numeric_transformer = Pipeline(steps=[
     ("imputer", SimpleImputer(strategy="median")),
