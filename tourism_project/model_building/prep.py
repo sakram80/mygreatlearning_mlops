@@ -1,43 +1,29 @@
-import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-# 1. Load the dataset from the repository data folder
-data_path = "tourism_project/data/tourism.csv"
-df = pd.read_csv(data_path)
+# 1. Load the dataset
+df = pd.read_csv("tourism_project/data/tourism.csv")
 
-# 2. Remove unnecessary columns
-# Drop identifier or auto-generated index columns that do not help prediction
+# 2. Remove unnecessary columns and fix minor typos
 cols_to_drop = ['CustomerID', 'Unnamed: 0']
 df = df.drop(columns=[col for col in cols_to_drop if col in df.columns])
 
-# Clean minor formatting inconsistencies if present
 if 'Gender' in df.columns:
     df['Gender'] = df['Gender'].replace({'Fe Male': 'Female'})
 
-# 3. Split the data into training and testing sets (80% train, 20% test)
+# 3. Split into X and y, then into train and test sets
 target_col = 'ProdTaken'
+X = df.drop(columns=[target_col])
+y = df[target_col]
 
-if target_col in df.columns:
-    train_df, test_df = train_test_split(
-        df,
-        test_size=0.2,
-        random_state=42,
-        stratify=df[target_col]
-    )
-else:
-    train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
+Xtrain, Xtest, ytrain, ytest = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
 
-# 4. Save the split files locally as CSV files
-output_dir = "tourism_project/data"
-os.makedirs(output_dir, exist_ok=True)
+# 4. Save the four split files in the root folder for GitHub Actions artifacts
+Xtrain.to_csv("Xtrain.csv", index=False)
+Xtest.to_csv("Xtest.csv", index=False)
+ytrain.to_csv("ytrain.csv", index=False)
+ytest.to_csv("ytest.csv", index=False)
 
-train_path = os.path.join(output_dir, "train.csv")
-test_path = os.path.join(output_dir, "test.csv")
-
-train_df.to_csv(train_path, index=False)
-test_df.to_csv(test_path, index=False)
-
-print("Data preparation completed successfully.")
-print(f"Training set saved to {train_path} with shape {train_df.shape}")
-print(f"Testing set saved to {test_path} with shape {test_df.shape}")
+print("Saved Xtrain.csv, Xtest.csv, ytrain.csv, and ytest.csv successfully.")
