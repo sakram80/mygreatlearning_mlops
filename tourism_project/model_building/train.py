@@ -19,7 +19,7 @@ y_test = pd.read_csv("ytest.csv").squeeze()
 
 # 2. Build preprocessing + model pipeline
 num_cols = X_train.select_dtypes(include=["int64", "float64"]).columns.tolist()
-cat_cols = X_train.select_dtypes(include=["object", "category"]).columns.tolist()
+cat_cols = X_train.select_dtypes(include=["object", "category", "str"]).columns.tolist()
 
 numeric_transformer = Pipeline(steps=[
     ("imputer", SimpleImputer(strategy="median")),
@@ -79,7 +79,11 @@ with mlflow.start_run(run_name="RandomForest_GridSearch"):
 
     mlflow.log_params(grid_search.best_params_)
     mlflow.log_metrics(metrics)
-    mlflow.sklearn.log_model(best_model, name="model")
+    mlflow.sklearn.log_model(
+        best_model,
+        name="model",
+        serialization_format="cloudpickle"
+    )
 
     print("Best Hyperparameters:", grid_search.best_params_)
     print("\n--- Test Set Evaluation ---")
