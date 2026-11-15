@@ -1,4 +1,5 @@
 import os
+import socket
 import joblib
 import mlflow
 import mlflow.sklearn
@@ -11,13 +12,13 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-# 1. Load the four split files downloaded by the workflow
+# 1. Load the four split files
 X_train = pd.read_csv("Xtrain.csv")
 X_test = pd.read_csv("Xtest.csv")
 y_train = pd.read_csv("ytrain.csv").squeeze()
 y_test = pd.read_csv("ytest.csv").squeeze()
 
-# 2. Build preprocessing + model pipeline (compatible with pandas 2.x and 3.x)
+# 2. Build preprocessing + model pipeline
 num_cols = X_train.select_dtypes(include=["number"]).columns.tolist()
 cat_cols = X_train.select_dtypes(exclude=["number"]).columns.tolist()
 
@@ -58,8 +59,11 @@ grid_search = GridSearchCV(
     n_jobs=-1
 )
 
-# 4. Track experiment, tune hyperparameters, and evaluate with MLflow
-mlflow.set_tracking_uri("http://127.0.0.1:5000")
+# 4. Connect to MLflow server if running (GitHub Actions), else log locally (Colab)
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    if s.connect_ex(("127.0.0.1", 5000)) == 0:
+        mlflow.set_tracking_uri("http://127.0.0.1:5000")
+
 mlflow.set_experiment("Tourism_Package_Prediction")
 
 with mlflow.start_run(run_name="RandomForest_GridSearch"):
